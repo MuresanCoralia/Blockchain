@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTML Tutorial</title>
+    <script src="https://gven.io/start/src/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body style="background-color:powderblue;">
+
+    <h1>This person is</h1>
+    <form>
+        <label for="fname">Name:</label><br>
+        <input type="text" id="name" placeholder="name" name="fname"><br>
+        <label for="lname">Age:</label><br>
+        <input type="text" id="age" placeholder="age" name="fage" value='0'>
+        <button style="position:absolute; left:40px; top:170px; background-color: pink" type="button" >Update</button>
+        <input style="position:absolute; left:10px; top:210px; width: 300px;" type="text" id ="Result" value="   " readonly>
+    </form>
+
+    <script>
+
+        async function admin(){
+           
+            web3 = new Web3(new Web3.providers.HttpProvider("https://data-seed-prebsc-1-s1.binance.org:8545/"));
+            var abiSource = '[{"constant": false,"inputs": [    {"name": "_fName","type": "string"},{"name": "_age","type": "uint256"   }],"name": "setInstructor","outputs": [],"payable": false,"stateMutability": "nonpayable","type": "function"},{"constant": true,"inputs": [],"name": "getInstructor","outputs": [{"name": "","type": "string"},{"name": "","type": "uint256"}],"payable": false,"stateMutability": "view","type": "function"}]';
+            var abi = JSON.parse(abiSource);
+            const privateKey = '0x566bba0ca568c71a83774d39b46cf5b3441a7ab037ca5590c3c0d39cd3a891d0';
+            const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            var contractAddress = '0xbe190A9Bdfa1545cf0eb4f66605566E3d44C0d36';
+            var myContract = new web3.eth.Contract(abi, contractAddress);
+            //var Coursetro = myContract.at(privateKey);
+
+            await myContract.methods.getInstructor().call(function(error, result){
+                console.log(result);
+                var Results = "This person is " + result[0] + " and is " + result[1]+ " years old.";
+                document.getElementById("Result").value = Results;
+                console.log("getInstructor works");
+            });
+            
+            $("button").click(async function(){
+                var myName = document.getElementById("name").value;
+                var myAge = document.getElementById("age").value;
+
+                const receit = await myContract.methods.setInstructor(myName, myAge).send({from:account.address, gas:2000000}).then(function(error, result){
+                    if(!error)
+                        console.log("");
+                    else
+                        console.error(error);
+                });
+
+                /*
+                data = web3.eth.abi.encodeFunctionCall(
+                {
+                    "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "fName",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "age",
+                        "type": "uint256"
+                    }
+                    ],
+                    "name": "getInstructor",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },[$("#name").val(), $("#age").val()])
+            
+                const txObject = {
+                    to: contract,
+                    gasLimit: web3.utils.toHex(100000),
+                    value: web3.utils.numberToHex(web3.utils.toWei('0', 'ether')),
+                    data: data
+                }
+                
+                const signTransaction = web3.eth.accounts.signTransaction(txObject, privateKey);
+
+                await web3.eth.sendSignedTransaction(signTransaction ,function(error, hash){
+                    if(!error)
+                        console.log("Send Signed Transaction works " + hash );
+                    else
+                        console.log("Error on Send Signed Transaction");
+                });
+                */
+            });   
+            
+        }
+        window.onload = function(){
+            admin();
+            // more
+        }
+
+    </script>
+
+</body>
+</html>
