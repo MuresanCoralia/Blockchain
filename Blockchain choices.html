@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTML Tutorial</title>
+    <script src="https://gven.io/start/src/web3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body style="background-color:powderblue;">
+
+    <h1>This person is</h1>
+    <form>
+        <label for="fname">Name:</label><br>
+        <input type="text" id="name" placeholder="name" name="fname"><br>
+        <label for="lname">Age:</label><br>
+        <input type="text" id="age" placeholder="age" name="fage" value='0'>
+        <h1>Your choice is : </h1>
+        <input type="radio" id="radioA" name="fav_language" value="A">
+        <label for="radioA">choice A</label><br>
+        <input type="radio" id="radioB" name="fav_language" value="B">
+        <label for="radioB">choice B</label><br> 
+        <input type="radio" id="radioC" name="fav_language" value="C">
+        <label for="radioC">choice C</label><br>
+        <button style="position:absolute; left:60px; top:330px; background-color: pink" type="button" >Update</button>
+        <input style="position:absolute; left:10px; top:390px; width: 400px;" type="text" id ="Result" value="   " readonly>
+    </form>
+
+    <script>
+        
+        async function admin(){
+           
+            web3 = new Web3(new Web3.providers.HttpProvider("https://data-seed-prebsc-1-s1.binance.org:8545/"));
+            var abiSource = '[{"constant": true,"inputs": [],"name": "getData","outputs": [{"name": "","type": "string"},{"name": "","type": "uint256"},{"name": "","type": "string"}],"payable": false,"stateMutability": "view","type": "function"},{"constant": false,"inputs": [{"name": "_fName","type": "string"},{"name": "_age","type": "uint256"},{"name": "_fChoice","type": "string"}],"name": "setData","outputs": [],"payable": false,"stateMutability": "nonpayable","type": "function"}]';
+            var abi = JSON.parse(abiSource);
+            const privateKey = '0x566bba0ca568c71a83774d39b46cf5b3441a7ab037ca5590c3c0d39cd3a891d0';
+            const account = web3.eth.accounts.privateKeyToAccount(privateKey);
+            web3.eth.accounts.wallet.add(account);
+            web3.eth.defaultAccount = account.address;
+            var contractAddress = '0xa54A1d4220b93b81495f6865b3e9899f2C6A2739'; 
+            var myContract = new web3.eth.Contract(abi, contractAddress);
+            //var Coursetro = myContract.at(privateKey);
+
+            await myContract.methods.getData().call(function(error, result){
+                console.log(result);
+                var Results = "This person is " + result[0] + " and is " + result[1] + " years old. They chosed: " + result[2] + ".";
+                document.getElementById("Result").value = Results;
+                console.log("getData works");
+            });
+                
+            $("button").click(async function(){
+                var myName = document.getElementById("name").value;
+                var myAge = document.getElementById("age").value;
+
+                if(document.getElementById('radioA').checked == true) {   
+                    var myChoice = document.getElementById("radioA").value;   
+                } else{
+                     if(document.getElementById('radioB').checked == true) {  
+                        var myChoice = document.getElementById("radioB").value;     
+                    } else{
+                        if(document.getElementById('radioC').checked == true) {  
+                            var myChoice = document.getElementById("radioC").value;   
+                        } else {
+                            var myChoice = "nothing";   
+                            }
+                        } 
+                    }
+                // document.getElementById("Result").value = Results;
+    
+                const receit = await myContract.methods.setData(myName, myAge, myChoice).send({from:account.address, gas:2000000}).then(function(error, result){
+                    if(!error)
+                        console.log("");
+                    else
+                        console.error(error);
+                });
+                
+            });   
+            
+        }
+        
+        window.onload = function(){
+            admin();
+            setInterval(function(){ 
+                admin()
+            }, 30000);
+        }
+
+    </script>
+
+</body>
+</html>
